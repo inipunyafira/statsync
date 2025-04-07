@@ -60,6 +60,7 @@
   </div>
 </div>
 
+{% if sheet_data %}
 <!-- Tabel Hasil Ekstraksi -->
 <div class="container mt-4 fade-in">
   <div class="card p-3">
@@ -80,7 +81,6 @@
             <td><a href="{{ sheet.file_sheet }}" target="_blank">Lihat Sheet</a></td>
           </tr>
           {% endfor %}
-          <!-- Data akan dimuat di sini oleh JavaScript -->
         </tbody>
       </table>
     </div>
@@ -90,6 +90,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 <script>
   document.getElementById("fileInput").addEventListener("change", function (event) {

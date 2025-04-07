@@ -17,7 +17,7 @@
     <!-- End BRS to Excel Nav -->
 
     <li class="nav-item">
-      <a class="nav-link {% if request.resolver_match.url_name == 'rekapitulasi' %}active{% else %}collapsed{% endif %}" href="{% url 'rekapitulasi' %}">
+      <a class="nav-link {% if request.resolver_match.url_name == 'rekapitulasi' or request.resolver_match.url_name == 'rekapitulasi-keseluruhan' or request.resolver_match.url_name == 'rekapitulasi-pribadi' %}active{% else %}collapsed{% endif %}" href="{% url 'rekapitulasi' %}">
         <i class="bi bi-table"></i>
         <span>Recap</span>
       </a>

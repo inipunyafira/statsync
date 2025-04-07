@@ -53,34 +53,30 @@ def brstoexcel(request):
             extracted_title = extract_brs_title(file_path) or uploaded_file.name
 
             if BRSExcel.objects.filter(judul_brs=extracted_title).exists():
-                os.remove(file_path) 
+                os.remove(file_path)
                 return JsonResponse({"error": "BRS dengan judul ini sudah pernah diunggah."}, status=400)
 
             excel_path, sheet_links = pdf_to_excel(file_path)
 
             drive_url, drive_file_id = upload_to_drive(excel_path, return_id=True)
-            print(f"Drive URL: {drive_url}, Extracted File ID: {drive_file_id}") 
 
             BRSsheet.objects.filter(id_brsexcel__id=request.user).delete()
 
-            judul_brs = extract_brs_title(file_path) or uploaded_file.name
-
             brs = BRSExcel.objects.create(
-                judul_brs=judul_brs,
+                judul_brs=extracted_title,
                 id_file=drive_file_id,
                 url_file=drive_url,
                 tgl_terbit=tgl_terbit,
                 id=request.user
             )
-            brs.save()
 
             sheets_gid_mapping = get_sheets_gid(drive_file_id)
 
             for sheet in sheet_links:
                 sheet_gid = sheets_gid_mapping.get(sheet["judul_sheet"], None)
-                if sheet_gid is not None: 
-                    sheet_url = f"https://docs.google.com/spreadsheets/d/{drive_file_id}/edit?gid={sheet_gid}#gid={sheet_gid}" 
-                else: 
+                if sheet_gid is not None:
+                    sheet_url = f"https://docs.google.com/spreadsheets/d/{drive_file_id}/edit?gid={sheet_gid}#gid={sheet_gid}"
+                else:
                     sheet_url = drive_url
 
                 BRSsheet.objects.create(
@@ -89,16 +85,35 @@ def brstoexcel(request):
                     file_sheet=sheet_url
                 )
 
-            # return redirect('brs-to-excel')
-            return JsonResponse({"success": True, "message": "File berhasil diekstrak!", "id_file": drive_file_id})
+            # ⏬ Simpan info ke session (sementara)
+            request.session['show_preview'] = True
+            request.session['last_id_file'] = drive_file_id
+
+            return JsonResponse({
+                "success": True,
+                "message": "File berhasil diekstrak!",
+                "id_file": drive_file_id
+            })
 
     else:
         form = PDFUploadForm()
 
-    brs_data = BRSExcel.objects.filter(id=request.user)
-    sheet_data = BRSsheet.objects.filter(id_brsexcel__id=request.user)
+    # ⏬ Ambil data hanya jika session 'show_preview' aktif
+    show_preview = request.session.pop('show_preview', False)
+    last_id_file = request.session.pop('last_id_file', None)
 
-    return render(request, 'user/brs-to-excel.html', {'form': form, 'brs_data': brs_data, 'sheet_data': sheet_data})
+    if show_preview:
+        brs_data = {'last': {'id_file': last_id_file}} if last_id_file else None
+        sheet_data = BRSsheet.objects.filter(id_brsexcel__id=request.user)
+    else:
+        brs_data = None
+        sheet_data = []
+
+    return render(request, 'user/brs-to-excel.html', {
+        'form': form,
+        'brs_data': brs_data,
+        'sheet_data': sheet_data
+    })
 
 def get_sheets_gid_view(spreadsheet_id):
     """
@@ -182,7 +197,7 @@ def profile_view(request):
 
 @login_required
 @never_cache
-def update_profile(request, user_id):
+def update_profile_usr(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
 
     if request.method == "POST":
