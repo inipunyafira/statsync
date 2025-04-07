@@ -1,8 +1,4 @@
-{% extends "base/base-user.html" %}
-
-{% block title %}Personal Recap - StatSync{% endblock %}
-
-{% block content %}
+{% extends "base/base-user.html" %} {% block title %}Personal Recap - StatSync{% endblock %} {% block content %}
 <div class="pagetitle">
   <h1>Personal Recap</h1>
   <nav>
@@ -27,13 +23,13 @@
             <div class="d-flex align-items-center gap-3">
               <!-- Dropdown Tahun -->
               <div class="col-md-6">
-                  <label for="filterYear" class="form-label">Year</label>
-                  <select id="filterYear" class="form-select">
-                      <option selected disabled>Select Year</option>
-                      {% for year in years %}
-                          <option value="{{ year }}">{{ year }}</option>
-                      {% endfor %}
-                  </select>
+                <label for="filterYear" class="form-label">Year</label>
+                <select id="filterYear" class="form-select">
+                  <option selected disabled>Select Year</option>
+                  {% for year in years %}
+                  <option value="{{ year }}">{{ year }}</option>
+                  {% endfor %}
+                </select>
               </div>
 
               <!-- Dropdown Bulan -->
@@ -81,7 +77,8 @@
                 <td>{{ brs.judul_brs }}</td>
                 <td>{{ brs.tgl_terbit|date:"d/m/Y" }}</td>
                 <td>
-                  <a href="" class="text-primary edit-btn" data-id="{{ brs.id_brsexcel }}" data-title="{{ brs.judul_brs }}" data-date="{{ brs.tgl_terbit|date:'d/m/Y' }}">Edit</a>
+                  <a href="" class="text-primary edit-btn me-2" data-id="{{ brs.id_brsexcel }}" data-title="{{ brs.judul_brs }}" data-date="{{ brs.tgl_terbit|date:'d/m/Y' }}">Edit</a>
+                  <a href="{% url 'delete-brs' brs.id_brsexcel %}" class="text-danger" onclick="return confirm('Yakin ingin menghapus data ini?');">Delete</a>
                 </td>
               </tr>
               {% empty %}
@@ -109,14 +106,14 @@
       <div class="modal-body">
         <form id="editForm">
           {% csrf_token %}
-          <input type="hidden" id="edit_id" name="edit_id">
+          <input type="hidden" id="edit_id" name="edit_id" />
           <div class="mb-3">
             <label for="edit_title" class="form-label">BRS Title</label>
-            <input type="text" class="form-control" id="edit_title" name="judul_brs" required>
+            <input type="text" class="form-control" id="edit_title" name="judul_brs" required />
           </div>
           <div class="mb-3">
             <label for="edit_date" class="form-label">Publication Date</label>
-            <input type="date" class="form-control" id="edit_date" name="tgl_terbit" required>
+            <input type="date" class="form-control" id="edit_date" name="tgl_terbit" required />
           </div>
           <button type="submit" class="btn btn-primary">Save</button>
         </form>

@@ -9,7 +9,7 @@ from apps.myuser.pdf_processing.extract import pdf_to_excel, upload_to_drive, ex
 from apps.myuser.pdf_processing.brs_sheets import get_sheets_gid
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import logout, authenticate, login, update_session_auth_hash
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import never_cache, cache_control
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from urllib.parse import urlparse, parse_qs
@@ -36,6 +36,7 @@ def extract_file_id(url):
     return None 
 
 @login_required
+@never_cache
 def brstoexcel(request):
     if request.method == "POST":
         form = PDFUploadForm(request.POST, request.FILES)
@@ -106,10 +107,12 @@ def get_sheets_gid_view(spreadsheet_id):
     return get_sheets_gid(spreadsheet_id)
 
 @login_required
+@never_cache
 def rekapitulasi(request):
     return render(request, 'user/rekapitulasi.html')
 
 @login_required
+@never_cache
 def rekapitulasi_keseluruhan(request):
     brs_data = BRSExcel.objects.all().order_by('-tgl_terbit')  
     
@@ -122,6 +125,7 @@ def rekapitulasi_keseluruhan(request):
     })
 
 @login_required
+@never_cache
 def rekapitulasi_pribadi(request):
     brs_data = BRSExcel.objects.filter(id=request.user)
 
@@ -142,10 +146,12 @@ def rekapitulasi_pribadi(request):
     })
 
 @login_required
+@never_cache
 def profile_user(request):
     return render(request, 'common/profile-user.html')
 
 @login_required
+@never_cache
 def profile_view(request):
     user = request.user  
 
@@ -175,6 +181,7 @@ def profile_view(request):
     return render(request, "common/profile-user.html", {"user": user})
 
 @login_required
+@never_cache
 def update_profile(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
 
@@ -193,6 +200,7 @@ def update_profile(request, user_id):
     return render(request, "common/profile-user.html", {"user": user})
 
 @login_required
+@never_cache
 def change_password(request):
     if request.method == 'POST':
         current_password = request.POST.get('password')
@@ -212,6 +220,7 @@ def change_password(request):
 User = get_user_model()
 
 @login_required
+@never_cache
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def dashboard_user(request):
     print("\nDEBUG: Fungsi dashboard_user() dipanggil\n")
@@ -290,3 +299,18 @@ def logout_user(request):
     logout(request)
     request.session.flush()  # Bersihkan semua sesi
     return redirect('login')  # Kembali ke halaman login
+
+@login_required
+@never_cache
+def delete_brs(request, id_brsexcel):
+    brs = get_object_or_404(BRSExcel, id_brsexcel=id_brsexcel, id=request.user)
+    
+    # Hapus sheet terkait juga
+    BRSsheet.objects.filter(id_brsexcel=brs).delete()
+
+    # Hapus file di Google Drive (opsional, tergantung implementasi `upload_to_drive`)
+    # Misal kamu punya fungsi untuk menghapus file:
+    # delete_drive_file(brs.id_file)
+
+    brs.delete()
+    return redirect('rekapitulasi-pribadi')  # Ubah jika ingin redirect ke halaman lain

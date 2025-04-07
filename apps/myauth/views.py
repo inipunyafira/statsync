@@ -14,6 +14,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import CustomUser, Role
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
+
 
 def user_register(request):
     if request.method == "POST":
@@ -71,6 +73,7 @@ def dashboard_admin(request):
 def dashboard_user(request):
     return render(request, "user/dashboard.html")
 
+@never_cache
 def user_logout(request):
     logout(request)
     request.session.flush()
