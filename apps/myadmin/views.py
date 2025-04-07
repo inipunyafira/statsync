@@ -147,7 +147,7 @@ def profile_view(request):
 
 @login_required
 @never_cache
-def update_profile(request, user_id):
+def update_profile_adm(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
 
     if request.method == "POST":
@@ -220,8 +220,6 @@ def custom_login(request):
             return redirect('login')  # Redirect kembali ke halaman login
     
     return render(request, 'login.html')
-
-
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def logout_view(request):
