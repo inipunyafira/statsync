@@ -42,6 +42,15 @@ def extract_table_names(page_text):
     table_names = [line.strip() for line in lines if "Tabel" in line]
     return table_names if table_names else None
 
+def extract_images_from_pdf(pdf_path):
+    """Ekstraksi gambar dari PDF menggunakan pdfplumber."""
+    images = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            for img in page.images:
+                images.append(img)  # Menyimpan objek gambar
+    return images
+
 def pdf_to_excel(pdf_path):
     """
     Konversi PDF ke Excel dengan pdfplumber dan menyimpan informasi sheet.
@@ -57,21 +66,29 @@ def pdf_to_excel(pdf_path):
                     tables = page.extract_tables()
                     page_text = page.extract_text() or ""
                     table_names = extract_table_names(page_text) or []
+
+                    images = extract_images_from_pdf(pdf_path)
+                    if images:
+                        print(f"⚠ Gambar ditemukan di halaman {i+1}, gambar ini akan diabaikan.")
                     
-                    for table_idx, table in enumerate(tables): 
-                        if table and len(table) > 1:  # Pastikan tabel memiliki lebih dari satu baris (ada data selain header) 
-                            df = pd.DataFrame(table[1:], columns=table[0]) 
-                            if not df.empty:  # Pastikan DataFrame tidak kosong 
-                                sheet_name = table_names[table_idx] if table_idx < len(table_names) else None 
-                                if sheet_name:  # Pastikan ada nama sheet yang valid 
-                                    sheet_name = sheet_name[:31]  # Batasan nama sheet di Excel 
-                                    df.to_excel(writer, sheet_name=sheet_name, index=False) 
-                                    sheet_links.append({"judul_sheet": sheet_name, "gid": None})
+                    if tables:
+
+                        # Hanya ekstrak tabel yang ada, abaikan elemen lain
+                        for table_idx, table in enumerate(tables):
+                            if table and len(table) > 4:  # Pastikan tabel memiliki lebih dari satu baris (ada data selain header)
+                                df = pd.DataFrame(table[1:], columns=table[0])  # Menyusun DataFrame
+                                if not df.empty:  # Pastikan DataFrame tidak kosong
+                                    sheet_name = table_names[table_idx] if table_idx < len(table_names) else f"Tabel_{i+1}_{table_idx+1}"
+                                    sheet_name1 = sheet_name[:8]  # Batasan nama sheet di Excel (maks 31 karakter)
+                                    
+                                    sheet_name2 = pd.DataFrame([[sheet_name] + [''] * (len(df.columns) - 1)], columns=df.columns)
+                                    df_com = pd.concat([df, sheet_name2], ignore_index=True)
+                                    df_com.to_excel(writer, sheet_name=sheet_name1, index=False)
+                                    sheet_links.append({"judul_sheet": sheet_name1, "gid": None})
 
         return output_path, sheet_links
     except Exception as e:
         raise Exception(f"Error converting PDF to Excel: {str(e)}")
-
 def convert_to_google_sheets(file_id):
     """
     Mengonversi file Excel (.xlsx) di Google Drive menjadi Google Sheets.
