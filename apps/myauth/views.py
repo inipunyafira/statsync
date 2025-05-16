@@ -27,7 +27,7 @@ def user_register(request):
         if password == confpassword:
             # Pastikan username belum terdaftar
             if CustomUser.objects.filter(username=username).exists():
-                messages.error(request, "Username sudah digunakan!")
+                messages.error(request, "Username is already taken!")
                 return redirect('register')
 
             # Buat user baru
@@ -39,7 +39,7 @@ def user_register(request):
             user.id_role = role  # Asumsi CustomUser memiliki foreign key ke Role
             user.save()
 
-            messages.success(request, "Akun berhasil dibuat! Silakan login.")
+            messages.success(request, "Account successfully created! Please log in.")
             return redirect('login')
 
     return render(request, "auth/register.html")
@@ -60,7 +60,7 @@ def user_login(request):
                 return redirect('dashboard-user')
 
         else:
-            messages.error(request, "Username atau password salah!")
+            messages.error(request, "Incorrect username or password!")
             return redirect('login')
 
     return render(request, "auth/login.html")

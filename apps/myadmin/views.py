@@ -116,37 +116,6 @@ def profile_admin(request):
 
 @login_required
 @never_cache
-def profile_view(request):
-    user = request.user  
-
-    if request.method == "POST":
-        full_name = request.POST.get("full_name", "").strip()  # Ambil full name dari form
-        username = request.POST.get("username", "").strip()
-
-        if not full_name:
-            messages.error(request, "Full name cannot be empty.")
-            return redirect("profile-admin")
-
-        if not username:
-            messages.error(request, "Username cannot be empty.")
-            return redirect("profile-admin")
-
-        if User.objects.filter(username=username).exclude(id=user.id).exists():
-            messages.error(request, "Username is already taken.")
-            return redirect("profile-admin")
-
-        # Simpan full name langsung ke first_name
-        user.first_name = full_name  
-        user.username = username
-        user.save()
-
-        messages.success(request, "Profile updated successfully!")
-        return redirect("profile-admin")  
-
-    return render(request, "common/profile-admin.html", {"user": user})
-
-@login_required
-@never_cache
 def update_profile_adm(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
 
@@ -188,27 +157,6 @@ def custom_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-
-            # Cek parameter next agar hanya redirect ke halaman yang diizinkan
-            next_url = request.GET.get("next")
-            if next_url:
-                return redirect(next_url)
-
-            return redirect('dashboard-admin')  # Redirect default setelah login
-
-        else:
-            return render(request, 'login.html', {'error': 'Username atau password salah'})
-
-    return render(request, 'login.html')
-
-def custom_login(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
         
         user = authenticate(request, username=username, password=password)
         
@@ -216,7 +164,7 @@ def custom_login(request):
             login(request, user)
             return redirect('dashboard-admin')  # Redirect ke halaman dashboard
         else:
-            messages.error(request, "Username atau password salah!")
+            messages.error(request, "Incorrect username or password!")
             return redirect('login')  # Redirect kembali ke halaman login
     
     return render(request, 'login.html')
