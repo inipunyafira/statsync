@@ -54,7 +54,7 @@ def brstoexcel(request):
 
             if BRSExcel.objects.filter(judul_brs=extracted_title).exists():
                 os.remove(file_path)
-                return JsonResponse({"error": "BRS dengan judul ini sudah pernah diunggah."}, status=400)
+                return JsonResponse({"error": "BRS with this title has already been uploaded."}, status=400)
 
             excel_path, sheet_links = pdf_to_excel(file_path)
 
@@ -91,7 +91,7 @@ def brstoexcel(request):
 
             return JsonResponse({
                 "success": True,
-                "message": "File berhasil diekstrak!",
+                "message": "The file has been successfully extracted!",
                 "id_file": drive_file_id
             })
 
@@ -114,12 +114,6 @@ def brstoexcel(request):
         'brs_data': brs_data,
         'sheet_data': sheet_data
     })
-
-def get_sheets_gid_view(spreadsheet_id):
-    """
-    View untuk mendapatkan daftar GID dari Google Sheets.
-    """
-    return get_sheets_gid(spreadsheet_id)
 
 @login_required
 @never_cache
@@ -164,36 +158,6 @@ def rekapitulasi_pribadi(request):
 @never_cache
 def profile_user(request):
     return render(request, 'common/profile-user.html')
-
-@login_required
-@never_cache
-def profile_view(request):
-    user = request.user  
-
-    if request.method == "POST":
-        full_name = request.POST.get("full_name", "").strip() 
-        username = request.POST.get("username", "").strip()
-
-        if not full_name:
-            messages.error(request, "Full name cannot be empty.")
-            return redirect("profile-user")
-
-        if not username:
-            messages.error(request, "Username cannot be empty.")
-            return redirect("profile-user")
-
-        if User.objects.filter(username=username).exclude(id=user.id).exists():
-            messages.error(request, "Username is already taken.")
-            return redirect("profile-user")
-
-        user.first_name = full_name  
-        user.username = username
-        user.save()
-
-        messages.success(request, "Profile updated successfully!")
-        return redirect("profile-user")  
-
-    return render(request, "common/profile-user.html", {"user": user})
 
 @login_required
 @never_cache
@@ -304,7 +268,7 @@ def custom_login_user(request):
             login(request, user)
             return redirect('dashboard-user')  # Redirect ke dashboard user
         else:
-            messages.error(request, "Username atau password salah!")
+            messages.error(request, "Incorrect username or password!")
             return redirect('login')  # Redirect kembali ke halaman login
     
     return render(request, 'login.html')

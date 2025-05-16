@@ -126,7 +126,7 @@
                     <h5 class="card-title">Profile Details</h5>
 
                     <div class="row mb-3">
-                      <div class="col-lg-3 col-md-4 label">Full Name</div>
+                      <div class="col-lg-3 col-md-4 label">Name</div>
                       <div class="col-lg-3 col-md-4">{{ user.first_name }}</div>
                     </div>
 
@@ -152,7 +152,7 @@
                     <form method="POST" action="{% url 'update_profile_adm' user.id %}">
                       {% csrf_token %}
                       <div class="row mb-3">
-                        <label for="fullName" class="col-md-4 col-lg-3 col-form-label label">Full Name</label>
+                        <label for="fullName" class="col-md-4 col-lg-3 col-form-label label">Name</label>
                         <div class="col-md-8 col-lg-9">
                           <input name="fullName" type="text" class="form-control" id="fullName" value="{{ user.get_full_name }}" />
                         </div>
@@ -186,6 +186,7 @@
                         <label for="newPassword" class="col-md-4 col-lg-3 col-form-label label">New Password</label>
                         <div class="col-md-8 col-lg-9">
                           <input name="newpassword" type="password" class="form-control" id="newPassword" required />
+                          <div class="invalid-feedback" id="passwordStrengthFeedback" style="display: none;">Password must be at least 8 characters and include both letters and numbers.</div>
                         </div>
                       </div>
 
@@ -193,6 +194,7 @@
                         <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label label">Re-enter New Password</label>
                         <div class="col-md-8 col-lg-9">
                           <input name="renewpassword" type="password" class="form-control" id="renewPassword" required />
+                          <div class="invalid-feedback" id="confirmPasswordFeedback" style="display: none;">The passwords you entered do not match!</div>
                         </div>
                       </div>
 
@@ -242,5 +244,39 @@
 
     <!-- Template Main JS File -->
     <script src="{% static 'js/main.js' %}"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const passwordInput = document.getElementById("newPassword");
+        const confirmPasswordInput = document.getElementById("renewPassword");
+        const passwordStrengthFeedback = document.getElementById("passwordStrengthFeedback");
+        const confirmPasswordFeedback = document.getElementById("confirmPasswordFeedback");
+
+        // Fungsi untuk memeriksa kekuatan password
+        passwordInput.addEventListener("input", function() {
+          const password = passwordInput.value;
+          const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/; // Password harus 8 karakter dan mengandung huruf dan angka
+          if (!regex.test(password)) {
+            passwordStrengthFeedback.style.display = "block";
+            passwordInput.classList.add("is-invalid");
+          } else {
+            passwordStrengthFeedback.style.display = "none";
+            passwordInput.classList.remove("is-invalid");
+          }
+        });
+
+        // Fungsi untuk memeriksa apakah password dan konfirmasi password cocok
+        confirmPasswordInput.addEventListener("input", function() {
+          if (confirmPasswordInput.value !== passwordInput.value) {
+            confirmPasswordFeedback.style.display = "block";
+            confirmPasswordInput.classList.add("is-invalid");
+          } else {
+            confirmPasswordFeedback.style.display = "none";
+            confirmPasswordInput.classList.remove("is-invalid");
+          }
+        });
+      });
+    </script>
+
   </body>
 </html>

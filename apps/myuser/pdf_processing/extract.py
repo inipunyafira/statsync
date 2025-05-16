@@ -4,91 +4,115 @@ from .brs_sheets import authenticate_drive
 import pdfplumber
 import pandas as pd
 import os
+import re
 from tqdm import tqdm
 
 def extract_brs_title(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[0]  # Ambil halaman pertama
-        words = page.extract_words(x_tolerance=3, y_tolerance=3)  # Ekstrak teks
-        
-        if not words:
-            return "Tidak ada teks yang ditemukan"
+        page = pdf.pages[0]
+        words = page.extract_words(x_tolerance=3, y_tolerance=3)
 
-        # Ambil ukuran font terbesar
+        if not words:
+            return "Judul_Tidak_Ditemukan"
+
         largest_size = 0
         text_by_size = {}
 
         for word in words:
-            size = word['bottom'] - word['top']  # Hitung ukuran font berdasarkan tinggi teks
-            
+            size = word['bottom'] - word['top']
             if size > largest_size:
-                largest_size = size  # Simpan ukuran terbesar
-            
-            # Kelompokkan teks berdasarkan ukuran font
-            if size in text_by_size:
-                text_by_size[size].append(word['text'])
-            else:
-                text_by_size[size] = [word['text']]
+                largest_size = size
+            text_by_size.setdefault(size, []).append(word['text'])
 
-        # Ambil teks dengan ukuran terbesar
-        title_text = " ".join(text_by_size.get(largest_size, []))
+        return " ".join(text_by_size[largest_size])
 
-        return title_text 
+def is_table_name(text):
+    return re.match(r"Tabel\s+\d+[\.]?\s*", text.strip())
 
+def extract_table_names(text):
+    lines = text.split("\n")
+    return [line.strip() for line in lines if is_table_name(line)]
 
-def extract_table_names(page_text):
-    """Mendeteksi semua nama tabel dari teks halaman PDF."""
-    lines = page_text.split("\n")
-    table_names = [line.strip() for line in lines if "Tabel" in line]
-    return table_names if table_names else None
+def is_valid_table(table):
+    # Tabel dianggap valid jika:
+    # - Ada header
+    # - Setidaknya 3 baris total (1 header + ≥2 isi)
+    # - Semua baris panjangnya sama
+    if not table or len(table) < 3:
+        return False
+    header_len = len(table[0])
+    if header_len < 2:
+        return False
+    for row in table:
+        if len(row) != header_len:
+            return False
+        if not any(cell and cell.strip() for cell in row):
+            return False
+    return True
 
-def extract_images_from_pdf(pdf_path):
-    """Ekstraksi gambar dari PDF menggunakan pdfplumber."""
-    images = []
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            for img in page.images:
-                images.append(img)  # Menyimpan objek gambar
-    return images
+def page_contains_only_images(page):
+    # Jika halaman hanya berisi gambar (tanpa teks), kita lewati
+    has_text = page.extract_text()
+    has_images = page.images
+    return not has_text and len(has_images) > 0
 
 def pdf_to_excel(pdf_path):
-    """
-    Konversi PDF ke Excel dengan pdfplumber dan menyimpan informasi sheet.
-    """
     try:
-        output_path = pdf_path.replace('.pdf', '.xlsx')
-        sheet_links = []  # Untuk menyimpan informasi sheet
+        brs_title = extract_brs_title(pdf_path).strip().replace(" ", "_").replace("/", "-")
+        output_path = os.path.splitext(pdf_path)[0] + f"_{brs_title}.xlsx"
+        sheet_links = []
 
         with pdfplumber.open(pdf_path) as pdf:
-            total_pages = len(pdf.pages)
-            with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-                for i, page in tqdm(enumerate(pdf.pages), total=total_pages, desc="Ekstraksi PDF", unit="halaman"):
+            full_text = "\n".join([p.extract_text() or "" for p in pdf.pages])
+            all_table_names = extract_table_names(full_text)
+
+            with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+                table_counter = 1
+                previous_header = None  # Simpan header sebelumnya
+
+                for i, page in tqdm(enumerate(pdf.pages), total=len(pdf.pages), desc="Memindai Halaman"):
+                    if page_contains_only_images(page):
+                        continue
+
                     tables = page.extract_tables()
-                    page_text = page.extract_text() or ""
-                    table_names = extract_table_names(page_text) or []
 
-                    images = extract_images_from_pdf(pdf_path)
-                    if images:
-                        print(f"⚠ Gambar ditemukan di halaman {i+1}, gambar ini akan diabaikan.")
-                    
-                    if tables:
+                    for table in tables:
+                        if not is_valid_table(table):
+                            continue
 
-                        # Hanya ekstrak tabel yang ada, abaikan elemen lain
-                        for table_idx, table in enumerate(tables):
-                            if table and len(table) > 4:  # Pastikan tabel memiliki lebih dari satu baris (ada data selain header)
-                                df = pd.DataFrame(table[1:], columns=table[0])  # Menyusun DataFrame
-                                if not df.empty:  # Pastikan DataFrame tidak kosong
-                                    sheet_name = table_names[table_idx] if table_idx < len(table_names) else f"Tabel_{i+1}_{table_idx+1}"
-                                    sheet_name1 = sheet_name[:8]  # Batasan nama sheet di Excel (maks 31 karakter)
-                                    
-                                    sheet_name2 = pd.DataFrame([[sheet_name] + [''] * (len(df.columns) - 1)], columns=df.columns)
-                                    df_com = pd.concat([df, sheet_name2], ignore_index=True)
-                                    df_com.to_excel(writer, sheet_name=sheet_name1, index=False)
-                                    sheet_links.append({"judul_sheet": sheet_name1, "gid": None})
+                        current_header = table[0]
+                        df = pd.DataFrame(table[1:], columns=current_header)
+                        if df.empty:
+                            continue
+
+                        # Deteksi apakah ini lanjutan dari tabel sebelumnya
+                        is_continuation = previous_header == current_header
+
+                        if is_continuation and table_counter > 1:
+                            sheet_name = f"Tabel {table_counter - 1} (Lanjutan)"
+                            full_table_name = f"Lanjutan Tabel {table_counter - 1}"
+                        else:
+                            sheet_name = f"Tabel {table_counter}"
+                            full_table_name = (
+                                all_table_names[table_counter - 1]
+                                if table_counter <= len(all_table_names)
+                                else sheet_name
+                            )
+                            table_counter += 1
+
+                        table_info_row = [full_table_name] + [''] * (df.shape[1] - 1)
+                        df.loc[len(df)] = table_info_row
+
+                        df.to_excel(writer, sheet_name=sheet_name[:31], index=False)
+                        sheet_links.append({"judul_sheet": sheet_name, "gid": None})
+
+                        previous_header = current_header  # Simpan header untuk tabel berikutnya
 
         return output_path, sheet_links
+
     except Exception as e:
-        raise Exception(f"Error converting PDF to Excel: {str(e)}")
+        raise Exception(f"Gagal konversi PDF ke Excel: {str(e)}")
+
 def convert_to_google_sheets(file_id):
     """
     Mengonversi file Excel (.xlsx) di Google Drive menjadi Google Sheets.

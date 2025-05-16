@@ -59,7 +59,7 @@
             <div class="col-md-6">
               <div class="card" style="height: 100%">
                 <div class="card-body">
-                  <h5 class="card-title text-center" style="color: black">Mounthly BRS {{ month_name }}</h5>
+                  <h5 class="card-title text-center" style="color: black">Monthly BRS {{ month_name }}</h5>
                   <div id="weeklyChart"></div>
                 </div>
               </div>
@@ -128,7 +128,8 @@
                 chart: {
                   type: "line",
                   height: "400",
-                  width: "100%"
+                  width: "100%",
+                  toolbar: { show: false }
                 },
                 xaxis: {
                   categories: chartCategories

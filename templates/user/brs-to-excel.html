@@ -24,7 +24,7 @@
       </div>
       <div class="col-md-9">
         <div class="card-body text-center">
-          <h5 class="card-title">Upload File PDF</h5>
+          <h5 class="card-title">Upload PDF File</h5>
 
           <!-- Tampilkan pesan error/sukses jika ada -->
           {% if messages %}
@@ -49,10 +49,10 @@
             </div>
 
             <!-- Notifikasi Error -->
-            <div id="error-message" class="text-danger mt-2" style="display: none">Tanggal harus diisi!</div>
+            <div id="error-message" class="text-danger mt-2" style="display: none">The date must be filled in!</div>
 
             <!-- Tombol Ekstrak -->
-            <button type="submit" class="btn btn-primary mt-2 w-100" >Ekstrak File</button>
+            <button type="submit" class="btn btn-primary mt-2 w-100" >Extract File</button>
           </form>
         </div>
       </div>
@@ -69,7 +69,7 @@
         <thead>
           <tr>
             <th scope="col">No</th>
-            <th scope="col">Judul Sheet</th>
+            <th scope="col">Sheet Title</th>
             <th scope="col">Preview</th>
           </tr>
         </thead>
@@ -78,7 +78,7 @@
           <tr>
             <th scope="row" class="row-number">{{ forloop.counter }}</th>
             <td>{{ sheet.judul_sheet }}</td>
-            <td><a href="{{ sheet.file_sheet }}" target="_blank">Lihat Sheet</a></td>
+            <td><a href="{{ sheet.file_sheet }}" target="_blank">View Sheet</a></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -158,7 +158,7 @@
     console.log("Download ID:", id_file);  // Debugging
 
     if (!id_file) {
-        alert("File tidak tersedia untuk diunduh.");
+        alert("The file is not available for download.");
         return;
     }
 
@@ -167,7 +167,7 @@
 
     let a = document.createElement("a");
     a.href = downloadUrl;
-    a.download = "Hasil_Ekstraksi.xlsx";  
+    a.download = "Extraction_Result.xlsx";  
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -182,7 +182,7 @@
     let formData = new FormData(this);
     let submitButton = this.querySelector("button[type='submit']");
     submitButton.disabled = true; // Matikan tombol selama proses
-    submitButton.innerText = "Memproses...";
+    submitButton.innerText = "Processing...";
 
     fetch("{% url 'brs-to-excel' %}", {
         method: "POST",
@@ -191,7 +191,7 @@
     .then(response => {
         if (!response.ok) {
             return response.json().then(data => {
-                throw new Error(data.error || "Terjadi kesalahan saat mengunggah.");
+                throw new Error(data.error || "An error occurred while uploading.");
             });
         }
         return response.json();
@@ -209,7 +209,7 @@
     })
     .finally(() => {
         submitButton.disabled = false;
-        submitButton.innerText = "Ekstrak File";
+        submitButton.innerText = "Extract File";
     });
 });
 </script>
@@ -236,16 +236,16 @@
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error("Gagal mengunggah file. Coba lagi.");
+        throw new Error("Failed to upload the file. Please try again.");
       }
       return response.json();
     })
     .then(data => {
       if (data.success) {
-        alert("Ekstraksi berhasil! Data diperbarui.");
+        alert("Extraction successful! Data has been updated.");
         location.reload(); // Reload untuk memuat hasil
       } else {
-        alert(data.error || "Terjadi kesalahan.");
+        alert(data.error || "An error occurred.");
       }
     })
     .catch(error => {

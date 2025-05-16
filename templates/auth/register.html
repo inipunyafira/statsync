@@ -163,13 +163,13 @@
           // Jika confirm password kosong
           if (!confirmPassword) {
             confirmPasswordInput.classList.add("is-invalid");
-            confirmPasswordFeedback.innerText = "Masukkan password!";
+            confirmPasswordFeedback.innerText = "Enter password!";
             confirmPasswordFeedback.style.display = "block";
           }
           // Jika password dan confirm password tidak sama
           else if (confirmPassword !== password) {
             confirmPasswordInput.classList.add("is-invalid");
-            confirmPasswordFeedback.innerText = "Password tidak sama!";
+            confirmPasswordFeedback.innerText = "Passwords are not the same!";
             confirmPasswordFeedback.style.display = "block";
           }
           // Jika password cocok
