@@ -1,14 +1,3 @@
-# from django.shortcuts import render
-# from django.contrib.auth import views as auth_views
-
-# # Contoh view untuk login
-# def login_view(request):
-#     return auth_views.LoginView.as_view(template_name='myauth/login.html')(request)
-
-# # Contoh view untuk logout
-# def logout_view(request):
-#     return auth_views.LogoutView.as_view()(request)
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -67,11 +56,11 @@ def user_login(request):
 
 @login_required
 def dashboard_admin(request):
-    return render(request, "admin/dashboard.html")
+    return render(request, "admin/dashboard-admin.html", context)
 
 @login_required
 def dashboard_user(request):
-    return render(request, "user/dashboard.html")
+    return render(request, "user/dashboard-user.html")
 
 @never_cache
 def user_logout(request):
@@ -81,25 +70,3 @@ def user_logout(request):
     response.delete_cookie('sessionid')  # Pastikan cookie sesi dihapus
     return response
 
-
-
-
-# from django.shortcuts import render
-
-# def dashboard_user(request):
-#     return render(request, 'user/dashboard-user.html')
-
-# def brstoexcel(request):
-#     return render(request, 'user/brs-to-excel.html')
-
-# def rekapitulasi(request):
-#     return render(request, 'user/rekapitulasi.html')
-
-# def rekapitulasi_keseluruhan(request):
-#     return render(request, 'user/rekapitulasi-keseluruhan.html')
-
-# def rekapitulasi_pribadi(request):
-#     return render(request, 'user/rekapitulasi-pribadi.html')
-
-# def profile_user(request):
-#     return render(request, 'common/profile-user.html')

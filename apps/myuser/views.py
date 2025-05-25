@@ -30,10 +30,6 @@ def extract_file_id(url):
     if "drive.google.com" in parsed_url.netloc or "docs.google.com" in parsed_url.netloc:
         if "/d/" in parsed_url.path: 
             return parsed_url.path.split("/d/")[1].split("/")[0]
-        elif "id=" in parsed_url.query: 
-            return parse_qs(parsed_url.query).get("id", [None])[0]
-    
-    return None 
 
 @login_required
 @never_cache
@@ -147,7 +143,6 @@ def rekapitulasi_pribadi(request):
         if form.is_valid():
             form.save()
             return JsonResponse({"status": "success"})  
-        return JsonResponse({"status": "error", "errors": form.errors})
 
     return render(request, "user/rekapitulasi-pribadi.html", {
         "brs_data": brs_data,
@@ -180,7 +175,7 @@ def update_profile_usr(request, user_id):
 
 @login_required
 @never_cache
-def change_password(request):
+def change_password_usr(request):
     if request.method == 'POST':
         current_password = request.POST.get('password')
         new_password = request.POST.get('newpassword')
@@ -193,8 +188,6 @@ def change_password(request):
             user.save()
             update_session_auth_hash(request, user) 
         return redirect('profile-user') 
-
-    return redirect('profile-user')
 
 User = get_user_model()
 
@@ -270,26 +263,11 @@ def custom_login_user(request):
         else:
             messages.error(request, "Incorrect username or password!")
             return redirect('login')  # Redirect kembali ke halaman login
-    
-    return render(request, 'login.html')
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def logout_user(request):
-    logout(request)
-    request.session.flush()  # Bersihkan semua sesi
-    return redirect('login')  # Kembali ke halaman login
 
 @login_required
 @never_cache
 def delete_brs(request, id_brsexcel):
     brs = get_object_or_404(BRSExcel, id_brsexcel=id_brsexcel, id=request.user)
-    
-    # Hapus sheet terkait juga
     BRSsheet.objects.filter(id_brsexcel=brs).delete()
-
-    # Hapus file di Google Drive (opsional, tergantung implementasi `upload_to_drive`)
-    # Misal kamu punya fungsi untuk menghapus file:
-    # delete_drive_file(brs.id_file)
-
     brs.delete()
     return redirect('rekapitulasi-pribadi')  # Ubah jika ingin redirect ke halaman lain

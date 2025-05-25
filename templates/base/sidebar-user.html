@@ -35,7 +35,7 @@
     <!-- End Profile Page Nav -->
 
     <li class="nav-item">
-      <a class="nav-link {% if request.resolver_match.url_name == 'logout' %}active{% else %}collapsed{% endif %}" href="{% url 'logout-user' %}">
+      <a class="nav-link {% if request.resolver_match.url_name == 'logout' %}active{% else %}collapsed{% endif %}" href="{% url 'logout' %}">
         <i class="bi bi-box-arrow-left"></i>
         <span>Log Out</span>
       </a>
