@@ -78,7 +78,7 @@
                 <td>{{ brs.tgl_terbit|date:"d/m/Y" }}</td>
                 <td>
                   <a href="" class="text-primary edit-btn me-2" data-id="{{ brs.id_brsexcel }}" data-title="{{ brs.judul_brs }}" data-date="{{ brs.tgl_terbit|date:'d/m/Y' }}">Edit</a>
-                  <a href="{% url 'delete-brs' brs.id_brsexcel %}" class="text-danger" onclick="return confirm('Yakin ingin menghapus data ini?');">Delete</a>
+                  <a href="{% url 'delete-brs' brs.id_brsexcel %}" class="text-danger" onclick="return confirm('Are you sure you want to delete this data?');">Delete</a>
                 </td>
               </tr>
               {% empty %}
@@ -238,51 +238,4 @@
 
   document.addEventListener("DOMContentLoaded", updateTableNumbers);
 </script>
-
-<!-- <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const filterYear = document.getElementById("filterYear");
-    const filterMonth = document.getElementById("filterMonth");
-    const resetFilter = document.getElementById("resetFilter");
-    const tableRows = document.querySelectorAll("#brsTable tr");
-
-    function filterTable() {
-      const selectedYear = filterYear.value;
-      const selectedMonth = filterMonth.value;
-
-      tableRows.forEach((row) => {
-        const rowYear = row.getAttribute("data-year");
-        const rowMonth = row.getAttribute("data-month");
-
-        if ((selectedYear === "" || selectedYear === rowYear) && (selectedMonth === "" || selectedMonth === rowMonth)) {
-          row.style.display = "";
-        } else {
-          row.style.display = "none";
-        }
-      });
-    }
-
-    filterYear.addEventListener("change", filterTable);
-    filterMonth.addEventListener("change", filterTable);
-
-    resetFilter.addEventListener("click", function () {
-      filterYear.selectedIndex = 0;
-      filterMonth.selectedIndex = 0;
-      tableRows.forEach((row) => (row.style.display = ""));
-    });
-  });
-</script> -->
-
-<!-- script Nomor -->
-<!-- <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const tableRows = document.querySelectorAll("#brsTable tr");
-
-    tableRows.forEach((row, index) => {
-      const cell = document.createElement("td");
-      cell.innerHTML = `<strong>${index + 1}</strong>`;
-      row.insertAdjacentElement("afterbegin", cell);
-    });
-  });
-</script> -->
 {% endblock %}

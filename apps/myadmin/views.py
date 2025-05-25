@@ -135,7 +135,7 @@ def update_profile_adm(request, user_id):
 
 @login_required
 @never_cache
-def change_password(request):
+def change_password_adm(request):
     if request.method == 'POST':
         current_password = request.POST.get('password')
         new_password = request.POST.get('newpassword')
@@ -149,8 +149,6 @@ def change_password(request):
             user.save()
             update_session_auth_hash(request, user)  # Agar tetap login
         return redirect('profile-admin')  # Kembali ke halaman profil
-
-    return redirect('profile-admin')
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def custom_login(request):
@@ -166,12 +164,3 @@ def custom_login(request):
         else:
             messages.error(request, "Incorrect username or password!")
             return redirect('login')  # Redirect kembali ke halaman login
-    
-    return render(request, 'login.html')
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def logout_view(request):
-    logout(request)
-    request.session.flush()  # Hapus seluruh data sesi
-    return redirect('login')
-
