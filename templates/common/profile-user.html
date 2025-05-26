@@ -133,13 +133,7 @@
 
                     <div class="row mb-3">
                       <div class="col-lg-3 col-md-4 label">Role</div>
-                      <div class="col-lg-9 col-md-8">
-                        {% if user.id_role %} 
-                          {{ user.id_role.nama_role }}
-                        {% else %}
-                          No Role Assigned
-                        {% endif %}
-                      </div>
+                      <div class="col-lg-9 col-md-8">{% if user.id_role %} {{ user.id_role.nama_role }} {% else %} No Role Assigned {% endif %}</div>
                     </div>
 
                     <div class="row mb-3">
@@ -150,7 +144,7 @@
 
                   <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
                     <!-- Profile Edit Form -->
-                    <form method="POST" action="{% url 'update_profile_usr' user.id %}">
+                    <form id="profile-edit-form" method="POST" action="{% url 'update_profile_usr' user.id %}">
                       {% csrf_token %}
                       <div class="row mb-3">
                         <label for="fullName" class="col-md-4 col-lg-3 col-form-label label">Name</label>
@@ -178,21 +172,23 @@
                       <div class="row mb-3">
                         <label for="currentPassword" class="col-md-4 col-lg-3 col-form-label label">Current Password</label>
                         <div class="col-md-8 col-lg-9">
-                          <input name="password" type="password" class="form-control" id="currentPassword" />
+                          <input name="password" type="password" class="form-control" id="currentPassword" required />
                         </div>
                       </div>
 
                       <div class="row mb-3">
                         <label for="newPassword" class="col-md-4 col-lg-3 col-form-label label">New Password</label>
                         <div class="col-md-8 col-lg-9">
-                          <input name="newpassword" type="password" class="form-control" id="newPassword" />
+                          <input name="newpassword" type="password" class="form-control" id="newPassword" required />
+                          <div class="invalid-feedback" id="passwordStrengthFeedback" style="display: none">Password must be at least 8 characters and include both letters and numbers.</div>
                         </div>
                       </div>
 
                       <div class="row mb-3">
                         <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label label">Re-enter New Password</label>
                         <div class="col-md-8 col-lg-9">
-                          <input name="renewpassword" type="password" class="form-control" id="renewPassword" />
+                          <input name="renewpassword" type="password" class="form-control" id="renewPassword" required />
+                          <div class="invalid-feedback" id="confirmPasswordFeedback" style="display: none">The passwords you entered do not match!</div>
                         </div>
                       </div>
 
@@ -215,7 +211,8 @@
     <!-- ======= Footer ======= -->
     <footer id="footer" class="footer">
       <div class="copyright">
-        &copy; Copyright <strong><span>StatSync</span></strong>. All Rights Reserved
+        &copy; Copyright <strong><span>StatSync</span></strong
+        >. All Rights Reserved
       </div>
       <div class="credits">
         <!-- All the links in the footer should remain intact. -->
@@ -240,5 +237,143 @@
 
     <!-- Template Main JS File -->
     <script src="{% static 'js/main.js' %}"></script>
+
+    <script>
+      const currentPassword = document.getElementById("currentPassword");
+      const newPassword = document.getElementById("newPassword");
+      const renewPassword = document.getElementById("renewPassword");
+      const message = document.createElement("div");
+      message.style.color = "red";
+      message.style.fontSize = "0.9rem";
+      message.style.marginTop = "4px";
+
+      // Masukkan message di bawah field konfirmasi password
+      renewPassword.parentNode.appendChild(message);
+
+      function validatePasswordStrength(password) {
+        // Password minimal 8 karakter, mengandung huruf dan angka
+        const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        return regex.test(password);
+      }
+
+      function checkPasswordMatchAndStrength() {
+        if (!currentPassword.value) {
+          message.textContent = "Current password cannot be empty.";
+          return false;
+        }
+
+        if (!newPassword.value) {
+          message.textContent = "New password cannot be empty.";
+          return false;
+        }
+
+        if (!validatePasswordStrength(newPassword.value)) {
+          message.textContent = "Password must be at least 8 characters and include both letters and numbers.";
+          return false;
+        }
+
+        if (!renewPassword.value) {
+          message.textContent = "Please re-enter the new password.";
+          return false;
+        }
+
+        if (newPassword.value !== renewPassword.value) {
+          message.textContent = "Passwords do not match.";
+          return false;
+        }
+
+        message.textContent = "";
+        return true;
+      }
+
+      newPassword.addEventListener("input", checkPasswordMatchAndStrength);
+      renewPassword.addEventListener("input", checkPasswordMatchAndStrength);
+      currentPassword.addEventListener("input", checkPasswordMatchAndStrength);
+
+      const passwordForm = document.querySelector("form[action='{% url 'change-password_usr' %}']");
+      async function validateCurrentPassword(password) {
+        try {
+          const formData = new FormData();
+          formData.append("password", password);
+
+          const response = await fetch("{% url 'change-password_usr' %}", {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+            },
+            body: formData,
+          });
+
+          const result = await response.json();
+          return result.valid === true;
+        } catch (error) {
+          console.error("Error validating current password:", error);
+          return false;
+        }
+      }
+
+      passwordForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        if (!checkPasswordMatchAndStrength()) {
+          alert(message.textContent);
+          return;
+        }
+
+        const isValidPassword = await validateCurrentPassword(currentPassword.value);
+        if (!isValidPassword) {
+          alert("Current password is incorrect.");
+          return;
+        }
+
+        const confirmed = confirm("Are you sure to change your password?");
+        if (!confirmed) {
+          alert("Password change was cancelled.");
+          return;
+        }
+
+        alert("Password changed.");
+        passwordForm.submit(); // kirim form biasa ke backend
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("profile-edit-form");
+        if (!form) {
+          console.error("Form tidak ditemukan!");
+          return;
+        }
+
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault(); // Mencegah reload
+
+          const formData = new FormData(form);
+
+          try {
+            const response = await fetch(form.action, {
+              method: "POST",
+              headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+              },
+              body: formData,
+            });
+
+            const result = await response.json();
+
+            if (result.status === "error") {
+              alert(result.message);
+            } else if (result.status === "success") {
+              alert(result.message);
+              location.reload(); // Refresh halaman setelah update
+            }
+          } catch (err) {
+            alert("Terjadi kesalahan saat mengirim data.");
+            console.error("Fetch error:", err);
+          }
+        });
+      });
+    </script>
   </body>
 </html>

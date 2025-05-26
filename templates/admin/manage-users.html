@@ -41,7 +41,7 @@
                     <ul class="dropdown-menu dropdown-menu-light">
                       {% for role in roles %}
                       <li>
-                        <a class="dropdown-item change-role" href="#" data-user-id="{{ user.id }}" data-role-id="{{ role.id_role }}"> {{ role.nama_role }} </a>
+                        <a class="dropdown-item change-role" href="#" data-user-id="{{ user.id }}" data-role-id="{{ role.id_role }}" data-role-name="{{ role.nama_role }}"> {{ role.nama_role }} </a>
                       </li>
                       {% endfor %}
                     </ul>
@@ -66,6 +66,12 @@
         let userId = this.getAttribute("data-user-id");
         let roleId = this.getAttribute("data-role-id");
 
+        // Confirmation in English
+        let confirmation = confirm("Are you sure you want to change this user's role?");
+        if (!confirmation) {
+          return; // Cancel if not confirmed
+        }
+
         fetch("{% url 'change_user_role' %}", {
           method: "POST",
           headers: {
@@ -77,10 +83,10 @@
           .then((response) => response.json())
           .then((data) => {
             if (data.success) {
-              alert("Role updated to " + data.new_role);
-              location.reload(); // Refresh halaman untuk memperbarui tampilan
+              alert("Role has been successfully changed to: " + data.new_role);
+              location.reload(); // Refresh the page to update the view
             } else {
-              alert("Failed to update role: " + data.error);
+              alert("Failed to change role: " + data.error);
             }
           })
           .catch((error) => console.error("Error:", error));

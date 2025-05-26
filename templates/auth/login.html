@@ -58,7 +58,7 @@
                     </div>
                     {% endfor %} {% endif %}
 
-                    <form method="POST" class="row g-3 needs-validation" novalidate>
+                    <form method="POST" class="row g-3 needs-validation" novalidate id="login-form">
                       {% csrf_token %}
                       <div class="col-12">
                         <label for="yourUsername" class="form-label">Username</label>
@@ -110,6 +110,40 @@
     <script src="{% static 'vendor/simple-datatables/simple-datatables.js' %}"></script>
     <script src="{% static 'vendor/tinymce/tinymce.min.js' %}"></script>
     <script src="{% static 'vendor/php-email-form/validate.js' %}"></script>
+    <script>
+      document.querySelector("form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch("", {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+            },
+            body: formData,
+          });
+
+          const contentType = response.headers.get("content-type");
+
+          if (contentType && contentType.includes("application/json")) {
+            const result = await response.json();
+
+            if (result.status === "error") {
+              alert(result.message); // atau pakai sweetalert
+            }
+          } else {
+            // Jika response bukan JSON (berarti login berhasil), langsung reload
+            window.location.href = response.url;
+          }
+        } catch (err) {
+          console.error("Login failed:", err);
+        }
+      });
+    </script>
 
     <!-- Template Main JS File -->
     <script src="{% static 'js/main.js' %}"></script>

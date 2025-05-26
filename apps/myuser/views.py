@@ -30,6 +30,10 @@ def extract_file_id(url):
     if "drive.google.com" in parsed_url.netloc or "docs.google.com" in parsed_url.netloc:
         if "/d/" in parsed_url.path: 
             return parsed_url.path.split("/d/")[1].split("/")[0]
+        elif "id=" in parsed_url.query: 
+            return parse_qs(parsed_url.query).get("id", [None])[0]
+    
+    return None 
 
 @login_required
 @never_cache
@@ -143,6 +147,7 @@ def rekapitulasi_pribadi(request):
         if form.is_valid():
             form.save()
             return JsonResponse({"status": "success"})  
+        return JsonResponse({"status": "error", "errors": form.errors})
 
     return render(request, "user/rekapitulasi-pribadi.html", {
         "brs_data": brs_data,
@@ -163,13 +168,22 @@ def update_profile_usr(request, user_id):
         full_name = request.POST.get("fullName", "").strip()
         username = request.POST.get("username", "").strip()
 
+        # Cek duplikat username
+        if CustomUser.objects.filter(username=username).exclude(id=user_id).exists():
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': 'Username is already taken.'})
+
         if full_name:
             user.first_name = full_name
         if username:
             user.username = username
 
         user.save()
-        return redirect(request.path)  
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'message': 'Profile updated successfully.'})
+
+        return redirect(request.path)
 
     return render(request, "common/profile-user.html", {"user": user})
 
@@ -180,14 +194,23 @@ def change_password_usr(request):
         current_password = request.POST.get('password')
         new_password = request.POST.get('newpassword')
         renew_password = request.POST.get('renewpassword')
-
         user = request.user
 
+        # Cek jika permintaan datang dari JavaScript (AJAX) hanya untuk validasi password lama
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if user.check_password(current_password):
+                return JsonResponse({'valid': True})
+            else:
+                return JsonResponse({'valid': False})
+
+        # Kalau bukan AJAX, jalankan logika ganti password seperti biasa
         if user.check_password(current_password) and new_password == renew_password:
             user.set_password(new_password)
             user.save()
-            update_session_auth_hash(request, user) 
-        return redirect('profile-user') 
+            update_session_auth_hash(request, user)
+        
+        return redirect('profile-user')
+
 
 User = get_user_model()
 
@@ -263,11 +286,26 @@ def custom_login_user(request):
         else:
             messages.error(request, "Incorrect username or password!")
             return redirect('login')  # Redirect kembali ke halaman login
+    
+    return render(request, 'login.html')
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def logout_user(request):
+    logout(request)
+    request.session.flush()  # Bersihkan semua sesi
+    return redirect('login')  # Kembali ke halaman login
 
 @login_required
 @never_cache
 def delete_brs(request, id_brsexcel):
     brs = get_object_or_404(BRSExcel, id_brsexcel=id_brsexcel, id=request.user)
+    
+    # Hapus sheet terkait juga
     BRSsheet.objects.filter(id_brsexcel=brs).delete()
+
+    # Hapus file di Google Drive (opsional, tergantung implementasi `upload_to_drive`)
+    # Misal kamu punya fungsi untuk menghapus file:
+    # delete_drive_file(brs.id_file)
+
     brs.delete()
     return redirect('rekapitulasi-pribadi')  # Ubah jika ingin redirect ke halaman lain
