@@ -28,10 +28,13 @@ def manage_users(request):
 def change_user_role(request):
     if request.method == "POST":
         user_id = request.POST.get("user_id")
-        new_role_id = request.POST.get("role_id")
+        role_id = request.POST.get("role_id")
+
+        if not user_id or not role_id:
+            return JsonResponse({"success": False, "error": "Missing parameters"})
 
         user = get_object_or_404(CustomUser, id=user_id)
-        new_role = get_object_or_404(Role, id_role=new_role_id)
+        new_role = get_object_or_404(Role, id_role=role_id)
 
         user.id_role = new_role
         user.save()
@@ -123,32 +126,48 @@ def update_profile_adm(request, user_id):
         full_name = request.POST.get("fullName", "").strip()
         username = request.POST.get("username", "").strip()
 
+        # Cek duplikat username
+        if CustomUser.objects.filter(username=username).exclude(id=user_id).exists():
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': 'Username is already taken.'})
+
         if full_name:
             user.first_name = full_name
         if username:
             user.username = username
 
         user.save()
-        return redirect(request.path)  # Redirect ke halaman yang sama setelah update
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'message': 'Profile updated successfully.'})
+
+        return redirect(request.path)
 
     return render(request, "common/profile-admin.html", {"user": user})
 
 @login_required
 @never_cache
 def change_password_adm(request):
-    if request.method == 'POST':
+   if request.method == 'POST':
         current_password = request.POST.get('password')
         new_password = request.POST.get('newpassword')
         renew_password = request.POST.get('renewpassword')
-
         user = request.user
 
-        # Cek apakah current password benar
+        # Cek jika permintaan datang dari JavaScript (AJAX) hanya untuk validasi password lama
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if user.check_password(current_password):
+                return JsonResponse({'valid': True})
+            else:
+                return JsonResponse({'valid': False})
+
+        # Kalau bukan AJAX, jalankan logika ganti password seperti biasa
         if user.check_password(current_password) and new_password == renew_password:
             user.set_password(new_password)
             user.save()
-            update_session_auth_hash(request, user)  # Agar tetap login
-        return redirect('profile-admin')  # Kembali ke halaman profil
+            update_session_auth_hash(request, user)
+        
+        return redirect('profile-admin')
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def custom_login(request):

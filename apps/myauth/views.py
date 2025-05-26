@@ -4,6 +4,8 @@ from django.contrib import messages
 from .models import CustomUser, Role
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.http import JsonResponse
+import re
 
 
 def user_register(request):
@@ -13,23 +15,35 @@ def user_register(request):
         password = request.POST['password']
         confpassword = request.POST['confirmPassword']
 
-        if password == confpassword:
-            # Pastikan username belum terdaftar
-            if CustomUser.objects.filter(username=username).exists():
-                messages.error(request, "Username is already taken!")
-                return redirect('register')
+        # Validasi password: minimal 8 karakter, kombinasi huruf dan angka
+        password_regex = re.compile(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$')
 
+        if password != confpassword:
+            response_data = {'status': 'error', 'message': 'Password and confirm password do not match.'}
+        elif not password_regex.match(password):
+            response_data = {'status': 'error', 'message': 'Password must be at least 8 characters long and include both letters and numbers.'}
+        elif CustomUser.objects.filter(username=username).exists():
+            response_data = {'status': 'error', 'message': 'Username is already taken.'}
+        else:
             # Buat user baru
             user = CustomUser.objects.create_user(username=username, password=password)
             user.first_name = name
-
-            # Tetapkan role default (User)
             role, created = Role.objects.get_or_create(nama_role='User')
-            user.id_role = role  # Asumsi CustomUser memiliki foreign key ke Role
+            user.id_role = role
             user.save()
-
-            messages.success(request, "Account successfully created! Please log in.")
-            return redirect('login')
+            response_data = {'status': 'success', 'message': 'Account successfully created. Redirecting to login.', 'redirect_url': '/login/'}
+        
+        # Cek apakah request dari AJAX/JavaScript
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse(response_data)
+        else:
+            # fallback ke flow biasa
+            if response_data['status'] == 'success':
+                messages.success(request, response_data['message'])
+                return redirect('login')
+            else:
+                messages.error(request, response_data['message'])
+                return redirect('register')
 
     return render(request, "auth/register.html")
 
@@ -49,8 +63,11 @@ def user_login(request):
                 return redirect('dashboard-user')
 
         else:
-            messages.error(request, "Incorrect username or password!")
-            return redirect('login')
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': 'Incorrect username or password!'})
+            else:
+                messages.error(request, "Incorrect username or password!")
+                return redirect('login')
 
     return render(request, "auth/login.html")
 

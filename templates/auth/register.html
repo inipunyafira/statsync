@@ -60,7 +60,7 @@
                       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                     {% endfor %} {% endif %}
-                    
+
                     <form method="POST" class="row g-3 needs-validation" novalidate>
                       {% csrf_token %}
                       <div class="col-12">
@@ -188,6 +188,35 @@
 
         passwordInput.addEventListener("input", validatePassword);
         confirmPasswordInput.addEventListener("input", validateConfirmPassword);
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(form);
+
+          fetch("{% url 'register' %}", {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+            },
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "success") {
+                alert(data.message);
+                window.location.href = data.redirect_url;
+              } else {
+                alert(data.message); // bisa diganti dengan tampilkan pesan ke elemen HTML
+              }
+            })
+            .catch((error) => console.error("Error:", error));
+        });
       });
     </script>
 
