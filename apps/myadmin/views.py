@@ -5,7 +5,6 @@ from apps.myauth.models import CustomUser, Role
 from django.contrib import messages
 from django.contrib.auth import get_user_model, authenticate, login
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth import logout
 from django.views.decorators.cache import cache_control, never_cache
 from django.contrib import messages
 from apps.myauth.models import CustomUser
