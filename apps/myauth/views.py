@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import CustomUser, Role
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.http import JsonResponse
 import re
@@ -70,14 +69,6 @@ def user_login(request):
                 return redirect('login')
 
     return render(request, "auth/login.html")
-
-@login_required
-def dashboard_admin(request):
-    return render(request, "admin/dashboard-admin.html", context)
-
-@login_required
-def dashboard_user(request):
-    return render(request, "user/dashboard-user.html")
 
 @never_cache
 def user_logout(request):

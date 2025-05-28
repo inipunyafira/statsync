@@ -4,11 +4,10 @@ from apps.myauth.models import CustomUser
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from .forms import PDFUploadForm
-# from apps.myuser.models import BRSExcel, BRSsheet
 from apps.myuser.pdf_processing.extract import pdf_to_excel, upload_to_drive, extract_brs_title
 from apps.myuser.pdf_processing.brs_sheets import get_sheets_gid
 from django.shortcuts import redirect, get_object_or_404
-from django.contrib.auth import logout, authenticate, login, update_session_auth_hash
+from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.views.decorators.cache import never_cache, cache_control
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
@@ -19,8 +18,6 @@ import os
 from .forms import BRSExcelForm
 import uuid
 import json
-# import datetime
-
 
 
 def extract_file_id(url):
@@ -32,8 +29,6 @@ def extract_file_id(url):
             return parsed_url.path.split("/d/")[1].split("/")[0]
         elif "id=" in parsed_url.query: 
             return parse_qs(parsed_url.query).get("id", [None])[0]
-    
-    return None 
 
 @login_required
 @never_cache
@@ -286,26 +281,11 @@ def custom_login_user(request):
         else:
             messages.error(request, "Incorrect username or password!")
             return redirect('login')  # Redirect kembali ke halaman login
-    
-    return render(request, 'login.html')
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def logout_user(request):
-    logout(request)
-    request.session.flush()  # Bersihkan semua sesi
-    return redirect('login')  # Kembali ke halaman login
 
 @login_required
 @never_cache
 def delete_brs(request, id_brsexcel):
     brs = get_object_or_404(BRSExcel, id_brsexcel=id_brsexcel, id=request.user)
-    
-    # Hapus sheet terkait juga
     BRSsheet.objects.filter(id_brsexcel=brs).delete()
-
-    # Hapus file di Google Drive (opsional, tergantung implementasi `upload_to_drive`)
-    # Misal kamu punya fungsi untuk menghapus file:
-    # delete_drive_file(brs.id_file)
-
     brs.delete()
-    return redirect('rekapitulasi-pribadi')  # Ubah jika ingin redirect ke halaman lain
+    return redirect('rekapitulasi-pribadi')
