@@ -4,25 +4,22 @@ from django.contrib.auth import get_user_model
 from apps.myuser.models import BRSExcel
 from apps.myuser.views import extract_file_id
 from django.utils.timezone import now
-import io
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from django.core.files.uploadedfile import SimpleUploadedFile
 import os
+import io
 
 User  = get_user_model()
 
 class UserViewsTestCase(TestCase):
     def setUp(self):
-        # Membuat user test
+        # Create test user
         self.client = Client()
         self.user = User.objects.create_user(username='testing05', password='testing05')
         self.client.login(username='testing05', password='testing05')
 
-                # Membuat dua data BRSExcel minimal sesuai model untuk test
-        # Menggunakan field 'id' sebagai foreign key user sesuai view (filter id=request.user)
-        # Field tgl_terbit wajib diisi
-        # Jika perlu sesuaikan nama atribut foreign key user
+        # Create two BRSExcel entries for testing
         self.brs1 = BRSExcel.objects.create(id=self.user, tgl_terbit="2025-04-02")
         self.brs2 = BRSExcel.objects.create(id=self.user, tgl_terbit="2024-04-02")
 
@@ -37,7 +34,7 @@ class UserViewsTestCase(TestCase):
         self.assertEqual(user.username, 'testing05')
 
     def test_02_custom_login_invalid(self):
-        self.client.logout()  # Menghapus sesi yang sebelumnya
+        self.client.logout()  # Clear previous session
         response = self.client.post(reverse('custom_login_user'), {
             'username': 'testing05',
             'password': 'testing123'
@@ -62,16 +59,16 @@ class UserViewsTestCase(TestCase):
         self.assertIn('chart_data', response.context)
 
     def test_04_extract_file_id_valid(self):
-        """TC_WB_USR_001: Menguji fungsi extract_file_id() dengan URL Google Drive valid"""
+        """TC_WB_USR_001: Test extract_file_id() with valid Google Drive URL"""
         url = "https://drive.google.com/file/d/1A2B3C4D5E6F7/edit"
         file_id = extract_file_id(url)
         self.assertEqual(file_id, "1A2B3C4D5E6F7")
         url_with_id = "https://drive.google.com/?id=1A2B3C4D5E6F7"
         file_id_with_id = extract_file_id(url_with_id)
         self.assertEqual(file_id_with_id, "1A2B3C4D5E6F7")
-    
+
     def test_06_rekapitulasi(self):
-        self.client.login(username='testing05', password='tetsing05')
+        self.client.login(username='testing05', password='testing05')
         response = self.client.get(reverse('rekapitulasi'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user/rekapitulasi.html')
@@ -83,7 +80,7 @@ class UserViewsTestCase(TestCase):
         self.assertIn('brs_data', response.context)
         self.assertIn('years', response.context)
         self.assertEqual(len(response.context['brs_data']), 2)
-        
+
     def test_12_rekapitulasi_pribadi_edit(self):
         post_data = {
             'edit_id': self.brs1.id_brsexcel if hasattr(self.brs1, 'id_brsexcel') else self.brs1.id,
@@ -108,7 +105,7 @@ class UserViewsTestCase(TestCase):
             self.brs2.refresh_from_db()
 
     def test_07_profile_user(self):
-        self.client.login(username='testing05', password='tetsing05')
+        self.client.login(username='testing05', password='testing05')
         response = self.client.get(reverse('profile-user'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'common/profile-user.html')
@@ -126,13 +123,13 @@ class UserViewsTestCase(TestCase):
         self.assertEqual(self.user.first_name, 'testing05')
         self.assertEqual(self.user.username, 'testing05')
 
-        # Missing coverage: GET should render profile with user in context
+        # GET should render profile with user in context
         response_get = self.client.get(reverse('update_profile_usr', args=[self.user.id]))
         self.assertEqual(response_get.status_code, 200)
         self.assertTemplateUsed(response_get, 'common/profile-user.html')
         self.assertIn('user', response_get.context)
 
-        # Test POST dengan XMLHttpRequest
+        # Test POST with XMLHttpRequest
         response_post_ajax = self.client.post(reverse('update_profile_usr', args=[self.user.id]), {
             'fullName': 'testing05',
             'username': 'testing05'
@@ -140,7 +137,7 @@ class UserViewsTestCase(TestCase):
         self.assertEqual(response_post_ajax.status_code, 200)
         self.assertJSONEqual(response_post_ajax.content, {'status': 'success', 'message': 'Profile updated successfully.'})
 
-        # Test POST dengan XMLHttpRequest dan username yang sudah digunakan
+        # Test POST with duplicate username
         User.objects.create_user(username='testing051', password='testing05')
         response_post_ajax_duplicate_username = self.client.post(reverse('update_profile_usr', args=[self.user.id]), {
             'fullName': 'testing05',
@@ -149,7 +146,7 @@ class UserViewsTestCase(TestCase):
         self.assertEqual(response_post_ajax_duplicate_username.status_code, 200)
         self.assertJSONEqual(response_post_ajax_duplicate_username.content, {'status': 'error', 'message': 'Username is already taken.'})
 
-        # Test POST dengan XMLHttpRequest dan username yang sama dengan yang sudah ada
+        # Test POST with same username
         response_post_ajax_same_username = self.client.post(reverse('update_profile_usr', args=[self.user.id]), {
             'fullName': 'testing05',
             'username': 'testing05'
@@ -157,7 +154,7 @@ class UserViewsTestCase(TestCase):
         self.assertEqual(response_post_ajax_same_username.status_code, 200)
         self.assertJSONEqual(response_post_ajax_same_username.content, {'status': 'success', 'message': 'Profile updated successfully.'})
 
-        # Test POST dengan XMLHttpRequest dan username yang kosong
+        # Test POST with empty username
         response_post_ajax_empty_username = self.client.post(reverse('update_profile_usr', args=[self.user.id]), {
             'fullName': 'testing05',
             'username': ''
@@ -176,14 +173,14 @@ class UserViewsTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('testing051'))
 
-        # Test POST dengan XMLHttpRequest
+        # Test POST with XMLHttpRequest
         response_post_ajax = self.client.post(reverse('change-password_usr'), {
             'password': 'testing05',
             'newpassword': 'testing05',
             'renewpassword': 'testing05'
         }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response_post_ajax.status_code, 200)
-        self.assertJSONEqual(response_post_ajax.content, {'valid': False})  # Ubah menjadi {'valid': False}
+        self.assertJSONEqual(response_post_ajax.content, {'valid': False})
 
     def test_10_change_password_invalid(self):
         self.client.login(username='testing05', password='testing05')
@@ -194,66 +191,50 @@ class UserViewsTestCase(TestCase):
         })
         self.assertRedirects(response, reverse('profile-user'))
         self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password('testing05'))  # Password tidak berubah
+        self.assertTrue(self.user.check_password('testing05'))  # Password should not change
 
-    def test_upload_valid_pdf_file(self):
-        """Test uploading a valid PDF file by the user."""
-        
-        # Prepare the valid PDF file for upload
-        pdf_file_path = r'C:\Data\Kuliah\Projek_SAD\statsync\htmlcov\25_01.pdf'
-        
-        # Ensure the file exists before running the test
-        self.assertTrue(os.path.exists(pdf_file_path), "The test PDF file does not exist.")
-        
-        with open(pdf_file_path, 'rb') as pdf:
-            response = self.client.post(reverse('brstoexcel'), {
-                'pdf_file': pdf,
-                'tgl_terbit': '2025-05-01'  # Publication Date
-            })
-        
-        # Check the response status
+    def test_14_post_valid_brs(self):
+        """Test valid BRS upload"""
+        # Create a PDF file in memory
+        pdf_file = io.BytesIO()
+        p = canvas.Canvas(pdf_file, pagesize=letter)
+        p.drawString(100, 750, "This is a test PDF file.")
+        p.save()
+        pdf_file.seek(0)  # Reset file pointer to the beginning
+
+        response = self.client.post(reverse('brs-to-excel'), {
+            'pdf_file': SimpleUploadedFile("brs.pdf", pdf_file.read(), content_type='application/pdf'),
+            'tgl_terbit': '2025-06-02'
+        })
         self.assertEqual(response.status_code, 200)
+        self.assertIn('success', response.json())
+        self.assertTrue(BRSExcel.objects.filter(judul_brs='Expected Title').exists())  # Replace with actual expected title
+
+    def test_15_post_duplicate_brs_title(self):
+        """Test duplicate BRS title upload"""
+        # Create a PDF file in memory
+        pdf_file = io.BytesIO()
+        p = canvas.Canvas(pdf_file, pagesize=letter)
+        p.drawString(100, 750, "This is a test PDF file.")
+        p.save()
+        pdf_file.seek(0)  # Reset file pointer to the beginning
+
+        # First upload
+        self.client.post(reverse('brs-to-excel'), {
+            'pdf_file': SimpleUploadedFile("brs.pdf", pdf_file.read(), content_type='application/pdf'),
+            'tgl_terbit': '2025-06-02'
+        })
         
-        # Check that the response contains success message
-        self.assertContains(response, "The file has been successfully extracted!")
-        
-        # Log the response content for debugging
-        print(response.content)  # You can also use logging
+        # Reset the file pointer again for the second upload
+        pdf_file.seek(0)
 
-        # Check for the actual title extracted from the PDF
-        # Replace this with the actual expected title based on your PDF content
-        extracted_title = "Expected Title from PDF"  # Update this to the actual expected title
-        
-        # Check if the BRSExcel entry was created
-        if not BRSExcel.objects.filter(judul_brs=extracted_title).exists():
-            # Log all BRSExcel entries for debugging
-            all_entries = BRSExcel.objects.all()
-            for entry in all_entries:
-                print(f"Entry: {entry.judul_brs}, ID: {entry.id}, User: {entry.id_user}, Date: {entry.tgl_terbit}")
+        # Second upload with the same title
+        response = self.client.post(reverse('brs-to-excel'), {
+            'pdf_file': SimpleUploadedFile("brs.pdf", pdf_file.read(), content_type='application/pdf'),
+            'tgl_terbit': '2025-06-02'
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('error', response.json())
+        self.assertEqual(response.json()['error'], "BRS with this title has already been uploaded.")
 
-        self.assertTrue(BRSExcel.objects.filter(judul_brs=extracted_title).exists(), 
-                        f"BRSExcel entry with title '{extracted_title}' does not exist.")
-
-        # Optionally, check the details of the created BRSExcel entry
-        brs_entry = BRSExcel.objects.get(judul_brs=extracted_title)
-        self.assertEqual(brs_entry.tgl_terbit, '2025-05-01')
-        self.assertEqual(brs_entry.id, self.user)  # Assuming 'id' is the foreign key to the user
-
-        # Check if the uploaded file exists in the expected location
-        file_path = os.path.join("static/uploads", brs_entry.id_file)  # Adjust based on your model
-        self.assertTrue(os.path.exists(file_path))
-
-        # Clean up: Remove the uploaded file if necessary
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-
-
-
-
-
-
-
-
-   
 
