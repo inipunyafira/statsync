@@ -1,0 +1,91 @@
+{% extends "base/base-user.html" %}
+{% load static %}
+
+{% block title %}Metadata Preview - StatSync{% endblock %}
+
+{% block content %}
+<div class="pagetitle">
+  <h1>Metadata Preview</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard-user' %}">Home</a></li>
+      <li class="breadcrumb-item active"><a href="{% url 'metadata-preview' %}">Metadata</a></li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container fade-in">
+
+    <!-- List BRS hanya tampil kalau tidak sedang memilih BRS -->
+    {% if not brs %}
+    <section class="section">
+    <div class="row fade-in">
+        <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+            <h5 class="fw-bold mb-3 mt-3">Extracted BRS</h5>
+
+            <!-- Tabel -->
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">No</th>
+                    <th scope="col">BRS Title</th>
+                    <th scope="col">Publication Date</th>
+                    <th scope="col">Action</th>
+                </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                {% for brs_item in daftar_brs %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ brs_item.judul_brs }}</td>
+                    <td>{{ brs_item.tgl_terbit|date:"d F Y" }}</td>
+                <td>
+                  <a href="?id={{ brs_item.id_brsexcel }}" class="text-primary me-2 metadata-btn">Metadata</a>
+                </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No data available</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <!-- End Tabel -->
+
+            </div>
+        </div>
+        </div>
+    </div>
+    </section>
+    {% endif %}
+
+    <!-- Preview Metadata -->
+    {% if brs %}
+    <div class="card p-4 mb-4">
+      <h5 class="fw-bold mb-3 mt-3">BRS File Information</h5>
+      <p><strong>BRS Title:</strong> {{ brs.judul_brs }}</p>
+      <p><strong>Publication Date:</strong> {{ brs.tgl_terbit|date:"d F Y" }}</p>
+      <p><strong>Source:</strong> BPS Jawa Timur</p>
+      <p><strong>File Size:</strong> {{ brs.ukuran_file }}</p>
+      <p><strong>Number of Pages:</strong> {{ brs.jumlah_halaman }}</p>
+      <p><strong>Document Summary:</strong> {{ brs.deskripsi_abstrak }}</p>
+    </div>
+  
+    <!-- {% if sheets %}
+      {% for sheet in sheets %}
+      <div class="card mb-4 p-3">
+        <h5 class="mb-2">Tabel: {{ sheet.nama_tabel_ver2}}</h5>
+        <p><strong>Deskripsi:</strong> {{ sheet.deskripsi_bersih }}</p>  Menampilkan deskripsi per tabel -->
+        <!-- <p><strong>Deskripsi:</strong> {{ sheet.deskripsi }}</p>   Menampilkan deskripsi per tabel -->
+        <!-- <iframe src="{{ sheet.file_sheet }}" width="100%" height="400" frameborder="0"></iframe> --> 
+      <!-- </div> -->
+      <!-- {% endfor %} -->
+    <!-- {% else %} -->
+      <!-- <div class="alert alert-warning">Tidak ada sheet untuk BRS ini.</div> -->
+    {% endif %}
+    {% endif %}
+  
+  </div>
+  {% endblock %}

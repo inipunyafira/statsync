@@ -24,6 +24,14 @@
     </li>
     <!-- End Rekapitulasi Nav -->
 
+    <li class="nav-item">
+      <a class="nav-link {% if request.resolver_match.url_name == 'metadata-preview' %}active{% else %}collapsed{% endif %}" href="{% url 'metadata-preview' %}">
+        <i class="bi bi-file-code"></i>
+        <span>Metadata</span>
+      </a>
+    </li>
+    <!-- End Metadata Preview Nav -->
+   
     <li class="nav-heading">Other</li>
 
     <li class="nav-item">
