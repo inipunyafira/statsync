@@ -1,1 +1,1 @@
-web: gunicorn 'statsync.wsgi'
+web: gunicorn statsync.wsgi
