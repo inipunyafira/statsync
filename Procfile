@@ -1,1 +1,1 @@
-web: gunicorn statsync.wsgi
+web: cd statsync && gunicorn statsync.wsgi:application
