@@ -10,10 +10,5 @@
       "src": "/(.*)",
       "dest": "statsync/wsgi.py"
     }
-  ],
-  "functions": {
-    "api/**": {
-      "excludeFiles": "**"
-    }
-  }
+  ]
 }
