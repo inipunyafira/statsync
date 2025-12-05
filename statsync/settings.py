@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-exm4+fxv!(8v319@qhm3)(=yfg-$j&h2j5+vr-ovulu!63i#ir'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1', '10.35.1.105']
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'statsync-capstone.up.railway.app']
@@ -121,27 +121,6 @@ DATABASES = {
         'PORT': '38031',      # or the port on which your MySQL server is listening
     }
 }
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-# # Set default values for the environment variables if they’re not already set
-# os.environ.setdefault("MYSQL_DATABASE", "railway")
-# os.environ.setdefault("MYSQLUSER", "root")
-# os.environ.setdefault("MYSQLPASSWORD", "dzCcTAWrvVzvQcsvgskHiRrMwAUEjYWN")
-# os.environ.setdefault("MYSQLHOST", "caboose.proxy.rlwy.net")
-# os.environ.setdefault("MYSQLPORT", "38031")
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.environ["MYSQL_DATABASE"],
-#         'USER': os.environ["MYSQLUSER"],
-#         'PASSWORD': os.environ["MYSQLPASSWORD"],
-#         'HOST': os.environ["MYSQLHOST"],
-#         'PORT': os.environ["MYSQLPORT"],
-#     }
-# }
 
 AUTH_USER_MODEL = 'myauth.CustomUser'  # Ganti dengan nama app kamu
 

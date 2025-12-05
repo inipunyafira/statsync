@@ -1,24 +1,72 @@
 import os
+import json
 import gspread
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from google.auth.transport.requests import Request
-import uuid
 import requests
 
-# Path absolut untuk file kredensial
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+
+# =======================================================================
+# CONFIG
+# =======================================================================
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "pdf_processing", "brs-sheets-api.json")
+CLIENT_SECRET_FILE = os.path.join(BASE_DIR, "pdf_processing", "client_secrets.json")
 
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+SCOPES = [
+    "https://www.googleapis.com/auth/drive",
+    # "https://www.googleapis.com/auth/spreadsheets"
+]
 
-# Pastikan file ada sebelum digunakan
-if not os.path.exists(SERVICE_ACCOUNT_FILE):
-    raise FileNotFoundError(f"File kredensial tidak ditemukan: {SERVICE_ACCOUNT_FILE}")
+# =======================================================================
+# OAUTH HANDLER
+# =======================================================================
 
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+def get_oauth_credentials():
+    """
+    Membuat credentials OAuth dari refresh_token + client_id + client_secret
+    yang disimpan di client_secrets.json (tidak memakai InstalledAppFlow).
+    """
 
-# Klien Google Sheets
+    with open(CLIENT_SECRET_FILE, "r") as f:
+        data = json.load(f)
+
+    web = data["web"]
+
+    refresh_token = web.get("refresh_token")
+    if not refresh_token:
+        raise ValueError("refresh_token tidak ditemukan di client_secrets.json")
+
+    creds = Credentials(
+        token=web.get("access_token"),      # boleh None, akan auto refresh
+        refresh_token=refresh_token,
+        token_uri=web["token_uri"],
+        client_id=web["client_id"],
+        client_secret=web["client_secret"],
+        scopes=SCOPES,
+    )
+
+    # Refresh untuk memastikan access token valid
+    creds.refresh(Request())
+
+    return creds
+
+
+def get_access_token():
+    """Mengambil access token terbaru."""
+    creds = get_oauth_credentials()
+    return creds.token
+
+
+# =======================================================================
+# GOOGLE SHEETS & DRIVE API
+# =======================================================================
+
+# OAuth credentials untuk gspread & Drive API
+creds = get_oauth_credentials()
+
+# Gspread client
 client = gspread.authorize(creds)
 
 def authenticate_drive():
@@ -26,11 +74,6 @@ def authenticate_drive():
     Mengautentikasi Google Drive API.
     """
     return build('drive', 'v3', credentials=creds)
-
-def get_access_token():
-    creds.refresh(Request())  # Refresh kredensial secara langsung
-    return creds.token  # Ambil token terbaru
-
 
 def get_sheets_gid(drive_file_id):
     """
