@@ -1,13 +1,13 @@
 {
-  "type": "service_account",
-  "project_id": "statsync-480309",
-  "private_key_id": "825d9e3b6e9382f8ed8635119e732a3a36b9a4df",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCrFkH/Z1S/Mn+U\nViTdgMLEKFExvl1P2cUmNStCGBH//NC9OQZt1iqESW5CA1YzC7hCgFpZNmfjwNkx\nPEBetV2kCVPAlLXfkmf91608acshAMlQY/IHKm2dfHOxGJcUDoMtG5et9SvioZNU\n1CuYn1nrik7g23LsQwV6mrkRcg4cGWgRlC/b+pncoN4KywrqQ6hOvJSjTH/pu5wb\nYKq7mjyQB42uPq8o2fXkbLPV/xIej1BSX6IpzGfwgmZsPKxH9BPL5YNKguQExsUY\ndUfLy4BaayVeUK7AOt1dTyC16Rn1sKcIulJiNxQprk8UbSgvCKATATfJI7LmUy0g\nDKccipclAgMBAAECggEAEPocMfMnwHJLISXcMiO3D/59Mh21Bjmym8w+XuhjDt8g\nOoqoVelg3jAoMgJBQT76OZUhggVJUVsfYkibjZpbMK4hQrSvCICvc4u9m8dWug9p\nKqJET8w4xN4m3820HjAjeawphMBVqr9ETrBgJBy58ErQ8XStRn8PEd+9GhtShZyh\nKjqaK0nTaj00YtNwVbGh6GLRzeknPwr0ZkI73de9QigJsphdtpd6eswxQk4h67Dk\nPWNj1CGDP4jS0VGeYknI2zi07NsBLZ9Sf3KtSl8vsVQh2wl5Zh47wVFVAVsBMJT/\nttHQhoVOsa5+m7gAM+XUQZP3/tuX9YIblU7niRe7OQKBgQDgNXcMOD03QCGvGUnA\nlEx3YOFzPqJxdY6TUvFbXZlmx6bV9L+NsEM/UroUZv61eZyN9jSckpQAcCKY8Upl\n3F65JUFmbFvF0B6jo0JQwq65D9XIlqAnHHBud8QZinykWpws9hiS2slfUWdX/33G\nVGnGUgpTJzR9WrbPUOFGEvlqqQKBgQDDWIapMwS8aPahnz/C2KiQxazUbPtWv+f4\nhtPxCTT/3jGpovUqCNqJP81UZPAngjTOdCfnSenx5ZksS4EaTj/5yI+yPtN00r8O\nWGgWokW+uBL1dcmlrnQU0+Js1P9gnGu6Nxow9y6suetfCUJTxnHZtU21pcJXISVN\nuN6krSCyHQKBgQDH6mRQHQVYcnKWcnH0qUbVWykrXTny+OM8McTLttXFc1grhqQW\nbohHujf5YSzUG6+gVVvsEDavfU0cGmpAERLU+4cpEI10AHKRbkz/PdgVYy04QjZj\nKVSG63uLWpRw5+pBnN2kdDkCKM+BA2reoP3/u79BDcAb1fsTOAbmOJz0oQKBgQC8\nMGyKVDwbxoLS8Tfb3h2GWulFPDhmOjqfkkRb0SLd3JC7e+HzvNPLpUuKIjO53BZD\nTmOizfIyt534rkSRsxCu8ih870mHIgAtMb4VD/9g3LRnBDJfCtGJvxZDAm+EAy1F\nGBCDW537iKDXzXO4gVTtB1z1wdqXVbc6SP80ZhU5gQKBgFCwPBEtDT1rZK7NM2un\ncogf3sFfo0+us6KfOrfDTMUMwpWNpHlj8XBOyr47Ph3I/+iJM/MeW2NULVjzs1ZC\n9wl8veg8MMxBeRQB5vJcrD0U387UzH2XFoMCDLPd406EapOnwN4v3b5b9rDCWKAD\n7bTFqP5uoMmJZK2AIp3ZqJTq\n-----END PRIVATE KEY-----\n",
-  "client_email": "brs-sheets-api@statsync-480309.iam.gserviceaccount.com",
-  "client_id": "108182084196245042185",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/brs-sheets-api%40statsync-480309.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
+  "web": {
+    "client_id": "360096501644-7eomn43jvo9fjaqqmkhhuckkftu7lftq.apps.googleusercontent.com",
+    "project_id": "statsyncnew",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_secret": "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",
+    "redirect_uris": ["https://developers.google.com/oauthplayground"],
+    "refresh_token": "1//04Swr5LYM5FKvCgYIARAAGAQSNwF-L9IraCWCBFQUT77Ph_a70bO9kNpJ9YGA22kQbI9wwDZ737MbEvH_Ucx7U2ErWJcu51IlHro",
+    "access_token": "ya29.a0ATi6K2vsf2_il7_qjkrVJV_FNxaAoxtWxIhjP6sx5cPfIJaXpK_FgeHddN1U4YHZtSa_6x3ZepgHuH9xerqCwHBIt7nOdMQPbF6emZivtL290fd0Mx1pJG_uLoGtGteoFv2TtnL67BUiKRm3PG_1ygy3syNqYKh6WT84dtSipSutPetKPb6YuARgbPBxBeyR2CK1-C8aCgYKAf0SARQSFQHGX2MifQ0KzNpcaRamEcaOHwcfLQ0206"
+  }
 }

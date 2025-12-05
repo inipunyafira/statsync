@@ -12,7 +12,8 @@ from googleapiclient.discovery import build
 # =======================================================================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLIENT_SECRET_FILE = os.path.join(BASE_DIR, "pdf_processing", "client_secrets.json")
+# CLIENT_SECRET_FILE = os.path.join(BASE_DIR, "pdf_processing", "client_secrets.json")
+CLIENT_SECRET_FILE = os.path.join(BASE_DIR, "pdf_processing", "brs-sheets-api.json")
 
 SCOPES = [
     "https://www.googleapis.com/auth/drive",
