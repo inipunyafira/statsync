@@ -29,7 +29,7 @@ DEBUG = False
 # ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1', '10.35.1.105']
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'statsync-capstone.up.railway.app']
 
-# CSRF_TRUSTED_ORIGINS = ['https:/statsync-capstone.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://statsync-capstone.up.railway.app']
 # Application definition
 
 INSTALLED_APPS = [
