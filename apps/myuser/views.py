@@ -68,7 +68,12 @@ def brstoexcel(request):
             tgl_terbit = form.cleaned_data['tgl_terbit']
 
             file_name = f"{uuid.uuid4().hex}.pdf"
-            file_path = os.path.join("staticfiles/uploads", file_name)
+            # file_path = os.path.join("staticfiles/uploads", file_name)
+            upload_dir = "/tmp/uploads"
+            os.makedirs(upload_dir, exist_ok=True)
+
+            file_path = os.path.join(upload_dir, file_name)
+
             with open(file_path, "wb") as f:
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
